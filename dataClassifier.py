@@ -9,10 +9,8 @@
 # This file contains feature extraction methods and harness 
 # code for data classification
 
-import mostFrequent
 import naiveBayes
 import perceptron
-import mira
 import samples
 import sys
 import util
@@ -165,7 +163,7 @@ def readCommand( argv ):
   from optparse import OptionParser  
   parser = OptionParser(USAGE_STRING)
   
-  parser.add_option('-c', '--classifier', help=default('The type of classifier'), choices=['mostFrequent', 'nb', 'naiveBayes', 'perceptron', 'mira', 'minicontest'], default='mostFrequent')
+  parser.add_option('-c', '--classifier', help=default('The type of classifier'), choices=['nb', 'naiveBayes', 'perceptron'], default='nb')
   parser.add_option('-d', '--data', help=default('Dataset to use'), choices=['digits', 'faces'], default='digits')
   parser.add_option('-t', '--training', help=default('The size of the training set'), default=100, type="int")
   parser.add_option('-f', '--features', help=default('Whether to use enhanced features'), default=False, action="store_true")
@@ -232,9 +230,7 @@ def readCommand( argv ):
       print USAGE_STRING
       sys.exit(2)
 
-  if(options.classifier == "mostFrequent"):
-    classifier = mostFrequent.MostFrequentClassifier(legalLabels)
-  elif(options.classifier == "naiveBayes" or options.classifier == "nb"):
+  if(options.classifier == "naiveBayes" or options.classifier == "nb"):
     classifier = naiveBayes.NaiveBayesClassifier(legalLabels)
     classifier.setSmoothing(options.smoothing)
     if (options.autotune):
@@ -244,16 +240,6 @@ def readCommand( argv ):
         print "using smoothing parameter k=%f for naivebayes" %  options.smoothing
   elif(options.classifier == "perceptron"):
     classifier = perceptron.PerceptronClassifier(legalLabels,options.iterations)
-  elif(options.classifier == "mira"):
-    classifier = mira.MiraClassifier(legalLabels, options.iterations)
-    if (options.autotune):
-        print "using automatic tuning for MIRA"
-        classifier.automaticTuning = True
-    else:
-        print "using default C=0.001 for MIRA"
-  elif(options.classifier == 'minicontest'):
-    import minicontest
-    classifier = minicontest.contestClassifier(legalLabels)
   else:
     print "Unknown classifier:", options.classifier
     print USAGE_STRING
