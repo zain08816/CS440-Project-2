@@ -45,6 +45,24 @@ class NaiveBayesClassifier(classificationMethod.ClassificationMethod):
         kgrid = [self.k]
         
     self.trainAndTune(trainingData, trainingLabels, validationData, validationLabels, kgrid)
+
+  def setup(self, trainingData, trainingLabels):
+
+    count = {}
+
+    for feat in self.features:
+      count[feat] = {}
+
+      for label in self.legalLabels:
+        #probablity of yes(1) and no(0)
+        count[feat][label] = {0: 0, 1: 0}
+
+    for i in range(len(trainingData)):
+      data = trainingData[i]
+      label = trainingLabels[i]
+      for feat, val in data.items():
+        count[feat][label][val] += 1
+
       
   def trainAndTune(self, trainingData, trainingLabels, validationData, validationLabels, kgrid):
     """
@@ -60,8 +78,21 @@ class NaiveBayesClassifier(classificationMethod.ClassificationMethod):
     self.legalLabels.
     """
 
-    "*** YOUR CODE HERE ***"
-    util.raiseNotDefined()
+    alpha = kgrid[0]
+
+    # setting up table
+    count = self.setup(trainingData, trainingLabels)
+    
+    # Naive Bayes
+    prob = {}
+    for feature, labels in count.items():
+      prob[feature] = {}
+      for label, value in labels.items():
+        prob[feature][label] = {}
+        class_total = sum(count[feature][label].values())
+        for ind, _ in value.items():
+          prob[feature][label][ind] = (count[feature][label][ind] + alpha) / class_total
+    self.probs = prob
         
   def classify(self, testData):
     """
@@ -69,12 +100,23 @@ class NaiveBayesClassifier(classificationMethod.ClassificationMethod):
     
     You shouldn't modify this method.
     """
+    prior = util.Counter()
+    for label in trainingLabels:
+      prior[label] += 1
+    # makes each counts into a percent of total counts in the counter. 
+    # i.e all counts will equal to 1 if summed
+    # used in logjoinprob
+    prior.normalize()
+    self.prior = prior
+
     guesses = []
-    self.posteriors = [] # Log posteriors are stored for later data analysis (autograder).
+    posterior = util.Counter()
     for datum in testData:
-      posterior = self.calculateLogJointProbabilities(datum)
+      for label in self.legalLabels:
+        posterior[label] = math.log(self.prior[label])
+        for feat, val in datum.items():
+          posterior[label] += math.log(self.probs[feat][label][val])
       guesses.append(posterior.argMax())
-      self.posteriors.append(posterior)
     return guesses
       
   def calculateLogJointProbabilities(self, datum):

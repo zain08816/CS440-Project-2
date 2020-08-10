@@ -28,6 +28,13 @@ class PerceptronClassifier:
   def setWeights(self, weights):
     assert len(weights) == len(self.legalLabels);
     self.weights == weights;
+
+  def activation(self, x, f, target, label):
+    elif f > target or f is None:
+      target = f
+      label = x
+
+    return (target, label)
       
   def train( self, trainingData, trainingLabels, validationData, validationLabels ):
     """
@@ -48,8 +55,19 @@ class PerceptronClassifier:
     for iteration in range(self.max_iterations):
       print "Starting iteration ", iteration, "..."
       for i in range(len(trainingData)):
-          "*** YOUR CODE HERE ***"
-          util.raiseNotDefined()
+
+        target,label = None
+        for x in self.legalLabels:
+          f = 0
+          for feature, theta in trainingData[i].items():
+            f += theta * self.weights[x][feature]
+          target, label = self.activation(x, f, target, label)
+        actual_label = trainingLabels[i]
+
+        if label != actual_label:
+          self.weights[label] -= trainingData[i]
+          self.weights[actual_label] += trainingData[i]
+
     
   def classify(self, data ):
     """
